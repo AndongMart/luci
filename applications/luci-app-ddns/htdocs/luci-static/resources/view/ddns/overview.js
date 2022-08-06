@@ -92,7 +92,99 @@ return view.extend({
 			});
 
 			list_service.forEach(function (service) {
+	*
+	 * Services list is gen by 3 different source:
+	 * 1. /usr/share/ddns/default contains the service installed by opkg
+	 * 2. /usr/share/ddns/custom contains any service installed by the
+	 *    user or the ddns script (for example when service are
+	 *    downloaded)
+	 * 3. /usr/share/ddns/list contains all the service that can be
+	 *    downloaded by using the ddns script ('service on demand' feature)
+	 *
+	 * (Special services that requires a dedicated package ARE NOT
+	 * supported by the 'service on demand' feature)
+	 */
+	callGenServiceList: function(m, ev) {
+		return Promise.all([
+			L.resolveDefault(fs.list('/usr/share/ddns/default'), []),
+			L.resolveDefault(fs.list('/usr/share/ddns/custom'), []),
+			L.resolveDefault(fs.read('/usr/share/ddns/list'), null)
+		]).then(L.bind(function (data) {
+			var default_service = data[0],
+				custom_service = data[1],
+				list_service = data[2] && data[2].split("\n") || [],
+				_this = this;
+
+			this.services = {};
+
+			default_service.forEach(function (service) {
+				_this.services[service.name.replace('.json','')] = true
+			});
+
+			custom_service.forEach(function (service) {
+				_this.services[service.name.replace('.json','')] = true
+			});
+
+			list_service.forEach(function (service) {
 				if (!_this.services[service])
+					_this.services[service] = false;
+	*
+	 * Services list is gen by 3 different source:
+	 * 1. /usr/share/ddns/default contains the service installed by opkg
+	 * 2. /usr/share/ddns/custom contains any service installed by the
+	 *    user or the ddns script (for example when service are
+	 *    downloaded)
+	 * 3. /usr/share/ddns/list contains all the service that can be
+	 *    downloaded by using the ddns script ('service on demand' feature)
+	 *
+	 * (Special services that requires a dedicated package ARE NOT
+	 * supported by the 'service on demand' feature)
+	 */
+	callGenServiceList: function(m, ev) {
+		return Promise.all([
+			L.resolveDefault(fs.list('/usr/share/ddns/default'), []),
+			L.resolveDefault(fs.list('/usr/share/ddns/custom'), []),
+			L.resolveDefault(fs.read('/usr/share/ddns/list'), null)
+		]).then(L.bind(function (data) {
+			var default_service = data[0],
+				custom_service = data[1],
+				list_service = data[2] && data[2].split("\n") || [],
+				_this = this;
+
+			this.services = {};
+
+			default_service.forEach(function (service) {
+				_this.services[service.name.replace('.json','')] = true
+			});
+
+			custom_service.forEach(function (service) {
+				_this.services[service.name.replace('.json','')] = true
+			});
+
+			list_service.forEach(function (service) {
+				if (!_this.services[service])
+					_this.services[service] = false;
+			});
+		}, this))
+	},
+
+	/*
+	* Check if the service is supported.
+	* If the script doesn't find any json assume a 'service on demand' install.
+	* If a json is found check if the ip type is supported.
+	* Invalidate the service_name if is not supported.
+	*/
+	handleCheckService : function(s, service_name, ipv6, ev, section_id) {		});
+		}, this))
+	},
+
+	/*
+	* Check if the service is supported.
+	* If the script doesn't find any json assume a 'service on demand' install.
+	* If a json is found check if the ip type is supported.
+	* Invalidate the service_name if is not supported.
+	*/
+	handleCheckService : function(s, service_name, ipv6, ev, section_id) {			if (!_this.services[service])
 					_this.services[service] = false;
 			});
 		}, this))
